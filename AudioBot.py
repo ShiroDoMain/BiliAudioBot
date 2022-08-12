@@ -17,13 +17,15 @@ from config import Config
 from gui import MainWindow
 from backend.aioserver import app as aioserver_app
 import asyncio
+from multiprocessing import Process
 
 async def mainloop(loop):
     a = MainWindow(loop=loop)
     task = [loop.create_task(a.start())]
     if Config.output_channel["web"]["enable"]:
-        app = aioserver_app
-        task.append(loop.create_task(run_backend(app)))
+        # app = aioserver_app
+        # task.append(loop.create_task(run_backend(app)))
+        Process(target=run_backend).start()
     if Config.output_channel["file"]["enable"]:
         lfs = LocalFileWriterServer()
         task.append(loop.create_task(lfs.start()))
@@ -43,7 +45,7 @@ async def mainloop_gui_only(loop):
         pass
 
 
-async def run_backend(app):
+async def run_backend(app = aioserver_app):
     web.run_app(app, host='127.0.0.1', port=Config.output_channel["web"]["port"])
 
 
